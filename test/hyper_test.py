@@ -4,8 +4,11 @@ import hyperplot as H
 from numpy.random import uniform, normal, randint
 from numpy import exp, log
 import os
-import pylab
-pylab.ion()
+try:
+    import pylab
+    pylab.ion()
+except:
+    print 'Matplotlib does not seem to be installed. You will not be able to do much.'
 
 def generate_data():
     print H.__file__
@@ -24,7 +27,7 @@ def generate_data():
         tzz = range(100),
     )
     data.add_virtual_column('sum_of_hyper1_and_hyper2', ['hyper_par1', 'hyper_par2'], lambda x,y : x+y)
-    data.add_virtual_column('texte_texte2', ['texte', 'texte2'], lambda x,y : '%s_%s' % (x,y))    
+    data.add_virtual_column('texte_texte2', ['texte', 'texte2'], lambda x,y : '%s_%s' % (x,y))
     return data
 
 def hyper_test():
@@ -41,7 +44,7 @@ def hyper_test():
     # 3D
     H.hyperscatter(data, x = 'hyper_par1', y = 'hyper_par2', z = 'cost', title='3d')
     # 3D + color + parse_func
-    H.hyperscatter(data, x = 'hyper_par1', y = 'hyper_par2', z = 'cost', c = ('couples', H.get_el(0)), title='3d + color + parse_func')    
+    H.hyperscatter(data, x = 'hyper_par1', y = 'hyper_par2', z = 'cost', c = ('couples', H.get_el(0)), title='3d + color + parse_func')
     # 2d + log + parse_func + color
     H.hyperscatter(data, x = ('log_1d', 'log'), y = 'autre_hyper', c = ('couples', H.get_el(0)), title='3d + log + parse_func + color')
     # 3D + log + parse_func
@@ -50,7 +53,7 @@ def hyper_test():
     H.hyperscatter(data, x = 'hyper_par1', y = 'hyper_par2', z = ('discrete', H.get_el(5)), title='3d discrete')
     # other args
     H.hyperscatter(data, x='hyper_par1', y='hyper_par2', title='titre au graph')
-    
+
     # texte 2D
     H.hyperscatter(data, x='hyper_par1', y = 'hyper_par2', c = 'tzz', t='texte_texte2')
     # text 3D
@@ -64,8 +67,8 @@ def hyper_test():
         t = ('cost', lambda x : '%0.2f' % x),
         s = ('cost', lambda x : 5.*x*x)
     )
-    
-    
+
+
 
 def filter_test():
     data = generate_data()
@@ -83,7 +86,7 @@ def filter_test():
     data.print_filters()
     data.remove_all_filters()
     data.print_filters()
-    
+
     data.add_filter('hyper_par1', H.filtering.ge(.1, name = 'filter1'))
     normal = False
     try:
@@ -97,14 +100,14 @@ def filter_test():
     except TypeError:
         normal = True
     assert normal
-        
+
     data.print_filters()
-        
+
     print data
 
 
     #H.hyperscatter(data, x = ('discrete', H.get_el(4)), y = 'hyper_par1', c = ('texte', lambda x : {'text1' : 0, 'text2' : 1}[x]), title='filters')
-    
+
 
 def csv_test():
     csv_file = os.path.join(os.path.split(H.__file__)[0],'test','csv_test.csv')
@@ -113,13 +116,13 @@ def csv_test():
     for name in data.column_names:
         data.add_filter(name, H.filtering.notnull(name= 'notnull_' + name))
     H.hyperscatter(data, x=('poolingfactors', H.get_el(0,0)), y=('poolingfactors', H.get_el(1,0)), c = 'bestkendall', title='csv1')
-    
+
 #    data.filter('bestkendall', filter_lt(.66))
     data.add_filter('poolingfactors', H.filtering.outside(2,8, parse_func=H.get_el(0,0)))
     data.add_filter('poolingfactors', H.filtering.between(4,5, parse_func=H.get_el(1,0)))
-    
+
     print data
-    
+
     H.hyperscatter(data, x=('poolingfactors', H.get_el(0,0)), y=('poolingfactors', H.get_el(1,0)), c = 'bestkendall', title='csv2')
 
 try:
@@ -137,25 +140,25 @@ try:
            table = 'conv_filter1_view'
            do_test = True
         if do_test:
-        
+
             data = H.sql2hyperdatabase(user = user, host = 'gershwin.iro.umontreal.ca', db = user + '_db', table = table)
-            
+
             if user == 'lemiesim':
-                data.add_filter('bestkendall', H.filtering.notnull())    
+                data.add_filter('bestkendall', H.filtering.notnull())
                 H.hyperscatter(data, x=('poolingfactors', H.get_el(0,0)), y=('poolingfactors', H.get_el(1,0)), z='bestkendall', title='salut')
-                
+
             elif user == 'hamelphi':
                 data.add_filter('jobman_status', H.filtering.eq(2))
                 data.add_filter('validcost', H.filtering.notnull())
                 H.hyperscatter(data, x='lr', y = ('pcadim', lambda x : {80:0,120:1}[x]), c='validcost', title='scatterplot')
-            
+
             print data._filters
             print data
 except ImportError:
     print 'Skipping the sql tests. Install pygresql ton enable.'
     is_pg_installed = False
-    
-    
+
+
 if __name__ == '__main__':
     generate_data()
     filter_test()
@@ -164,8 +167,8 @@ if __name__ == '__main__':
     if is_pg_installed:
         sql_test()
     raw_input('press Enter to quit')
-    
-        
-            
-            
-                    
+
+
+
+
+

@@ -4,6 +4,8 @@ from os.path import exists, join
 from filtering import Filter
 import numpy
 
+__all__ = ['HyperDatabase', 'csv2hyperdatabase', 'sql2hyperdatabase', 'mongo2hyperdatabase', 'get_el']
+
 class ColumnBase(object):
     def get_data(self):
         raise NotImplementedError('You have to subclass ColumnBase AND implement get_data')
@@ -506,6 +508,54 @@ def sql2hyperdatabase(user, host, db, table):
     keys = res[0].keys()
     data = HyperDatabase(*[(k, [ str2data_item(d[k]) for d in res]) for k in keys])
     return data
+
+
+###############
+### MONGO DB ##
+###############
+try:
+    import pymongo
+
+    def mongo2hyperdatabase(
+        user, password,
+        host, database, collection, port,
+        regroup_by_key):
+        """
+            regroup_by_key
+                all key/value packs that have the same value for the
+                `regroup_by_key` key will be considered as from the same row
+                if for a given regroup_by_key we find multiple values for
+                another key, will will only keep one of those (the last encountered)
+
+        """
+        conn = pymongo.MongoClient(host, port)
+        db = conn[database]
+        db.authenticate(user, password)
+
+        data = {}
+        allkeys = set()
+        print db[collection]
+        for row in db[collection].find():
+            id = row[regroup_by_key]
+            if id not in data:
+                data[id] = {}
+            for k,v in row.iteritems():
+                data[id][k] = v
+                allkeys.add(k)
+
+        data_by_col = {k:[] for k in allkeys}
+        for exp in data.itervalues():
+            for k in allkeys:
+                if k in exp:
+                    data_by_col[k].append(exp[k])
+                else:
+                    data_by_col[k].append(None)
+
+        return HyperDatabase(**data_by_col)
+
+except ImportError:
+    def mongo2hyperdatabase(*args, **kwargs):
+        print 'You must install pymongo if you want to import data from a mongo database.'
 
 
 ############################
